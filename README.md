@@ -6,18 +6,21 @@
  - to H.264 raw video
  - stored to disk as example
 
+On my laptop it usese around 10% CPU at 1280x720.
+
 ## Platforms 
 
-Platform independent apart from device passed to hardware context (currently hardcoded string).
-Instructions focus on Linux. Tested with Ubuntu 18.04.
+Instructions focus on Linux. Tested on Ubuntu 18.04.
+
+The code is platform independent apart from device passed to hardware context (hardcoded string).
 
 ## Hardware
 
-- D400 series camera (tested with D435, may also work with older cameras)
+- D400 series camera
 - VAAPI compatible hardware encoder (tested with Intel)
 
-For VAAPI the intention were Intel Quick Sync devices but example may also work with AMD and NVIDIA.
-(not guaranteed).
+Tested with D435 camera.
+Tested with Intel Quick Sync VAAPI device. 
 
 ## What it does
 
@@ -29,9 +32,6 @@ For VAAPI the intention were Intel Quick Sync devices but example may also work 
 - cleanup
 
 Currently NV12 Y is filled with infrared greyscale and color plane is filled with constant value.
-
-High H.264 profile supports Monochrome Video Format (4:0:0) so there may be room for improvement (I am not sure VAAPI supports it).
-
 
 ## Dependencies
 
@@ -95,4 +95,9 @@ This is similiar to LGPL but more permissive:
 
 Like in LGPL, if you modify this library, you have to make your changes available.
 Making a github fork of the library with your changes satisfies those requirements perfectly.
+
+## Additional information
+
+High H.264 profile supports Monochrome Video Format (4:0:0) so there may be room for improvement (I am not sure VAAPI supports it).
+
 
