@@ -6,7 +6,7 @@
  - to H.264 raw video
  - stored to disk as example
 
-On my laptop it usese around 10% CPU at 1280x720.
+On my laptop it uses around 10% CPU at 1280x720.
 
 ## Platforms 
 
@@ -17,10 +17,9 @@ The code is platform independent apart from device passed to hardware context (h
 ## Hardware
 
 - D400 series camera
-- VAAPI compatible hardware encoder (tested with Intel)
+- VAAPI compatible hardware encoder
 
-Tested with D435 camera.
-Tested with Intel Quick Sync VAAPI device. 
+Tested with D435 camera and Intel Quick Sync VAAPI device.
 
 ## What it does
 
@@ -35,7 +34,7 @@ Currently NV12 Y is filled with infrared greyscale and color plane is filled wit
 
 ## Dependencies
 
-The library depends on:
+Library depends on:
 - [librealsense2](https://github.com/IntelRealSense/librealsense) 
 - FFmpeg avcodec and avutil (tested with 3.4 version)
 
@@ -59,7 +58,7 @@ sudo apt-get install git
 git clone https://github.com/bmegli/realsense-ir-to-vaapi-h264.git
 
 # finally build the program
-cd realsense-ir-to-vaapi-h264.git
+cd realsense-ir-to-vaapi-h264
 g++ main.cpp -std=c++11 -lrealsense2 -lavcodec -lavutil -o realsense-ir-to-vaapi-h264
 ```
 
