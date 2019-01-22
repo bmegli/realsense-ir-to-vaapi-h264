@@ -66,7 +66,7 @@ g++ main.cpp -std=c++11 -lrealsense2 -lavcodec -lavutil -o realsense-ir-to-vaapi
 ## Running 
 
 ``` bash
-# realsense-ir-to-vaapi-h264 width height framerate nr_of_seconds
+# realsense-ir-to-vaapi-h264 width height framerate nr_of_seconds [device]
 # e.g
 ./realsense-ir-to-vaapi-h264 640 360 30 5
 ```
@@ -75,6 +75,21 @@ Details:
 - width and height have to be supported by D400 camera and H.264
 - framerate has to be supported by D400 camera
 
+### Troubleshooting
+
+If you have multiple VAAPI devices you may have to specify Intel directly.
+
+Check with 
+```bash
+# try the devices you have in /dev/dri/ path
+vainfo --display drm --device /dev/dri/renderD128
+```
+
+Once you identify your Intel device run the program, e.g.
+
+```bash
+./realsense-ir-to-vaapi-h264 640 360 30 5 /dev/dri/renderD128
+```
 
 ## Testing
 
