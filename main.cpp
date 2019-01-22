@@ -69,7 +69,7 @@ struct av_args
     AVCodecContext* avctx;
 };
 
-int main_loop(const input_args& input, rs2::pipeline& pipe, AVCodecContext* avctx, ofstream& out_file);
+bool main_loop(const input_args& input, rs2::pipeline& pipe, AVCodecContext* avctx, ofstream& out_file);
 bool encode_and_write_frame(AVCodecContext* avctx, AVFrame* frame, ofstream& out_file);
 void init_realsense(rs2::pipeline& pipe, const input_args& input);
 bool init_av(struct av_args* av, const input_args& input);
@@ -98,28 +98,35 @@ int main(int argc, char* argv[])
         return 3;
     }
 
-    main_loop(input, pipe, av.avctx, out_file);
+    bool status=main_loop(input, pipe, av.avctx, out_file);
 
     close_av(&av);
 
     out_file.close();
 
+    if(status)
+    {
+        cout << "Finished successfully" << endl;
+        cout << "Test with \"ffplay output.h264\"" << endl;
+    }
+
     return 0;
 }
 
-int main_loop(const input_args& input, rs2::pipeline& pipe, AVCodecContext* avctx, ofstream& out_file)
+//true on success, false on failure
+bool main_loop(const input_args& input, rs2::pipeline& pipe, AVCodecContext* avctx, ofstream& out_file)
 {
     const int size = input.width * input.height;
     const int frames = input.seconds * input.framerate;
+    int err = 0, f;
 
-    int err = 0;
     AVFrame *sw_frame = NULL, *hw_frame = NULL;
 
-    for(int f = 0; f < frames; ++f)
+    for(f = 0; f < frames; ++f)
     {
         if(!(sw_frame = av_frame_alloc()))
         {
-            err = AVERROR(ENOMEM);
+            cerr << "av_frame_alloc not enough memory" << endl;
             break;
         }
         /* read data into software frame, and transfer them into hw frame */
@@ -128,15 +135,14 @@ int main_loop(const input_args& input, rs2::pipeline& pipe, AVCodecContext* avct
         sw_frame->format = AV_PIX_FMT_NV12;
 
         if((err = av_frame_get_buffer(sw_frame, 32)) < 0)
-        break;
-
+        {
+            cerr << "av_frame_get_buffer failed" << endl;
+            break;
+        }
         rs2::frameset frameset = pipe.wait_for_frames();
         rs2::video_frame ir_frame = frameset.get_infrared_frame(1);
 
         const uint8_t* ir_data = (const uint8_t*)ir_frame.get_data();
-        cout << (f + 1) << ": width " << ir_frame.get_width() << " height " << ir_frame.get_height()
-             << " stride=" << ir_frame.get_stride_in_bytes() << " bytes "
-             << ir_frame.get_stride_in_bytes() * ir_frame.get_height() << endl;
 
         // we assume here the same stride (0 padding!) in realsense and ffmpeg
         memcpy(sw_frame->data[0], ir_data, size);
@@ -145,7 +151,7 @@ int main_loop(const input_args& input, rs2::pipeline& pipe, AVCodecContext* avct
 
         if(!(hw_frame = av_frame_alloc()))
         {
-            err = AVERROR(ENOMEM);
+            cerr << "av_frame_alloc not enough memory" << endl;
             break;
         }
         if((err = av_hwframe_get_buffer(avctx->hw_frames_ctx, hw_frame, 0)) < 0)
@@ -155,7 +161,7 @@ int main_loop(const input_args& input, rs2::pipeline& pipe, AVCodecContext* avct
         }
         if(!hw_frame->hw_frames_ctx)
         {
-            err = AVERROR(ENOMEM);
+            cerr << "hw_frame->hw_frames_ctx not enough memory" << endl;
             break;
         }
         if((err = av_hwframe_transfer_data(hw_frame, sw_frame, 0)) < 0)
@@ -164,7 +170,11 @@ int main_loop(const input_args& input, rs2::pipeline& pipe, AVCodecContext* avct
             break;
         }
 
-        if((err = (encode_and_write_frame(avctx, hw_frame, out_file))) < 0)
+        cout << (f + 1) << ": width " << ir_frame.get_width() << " height " << ir_frame.get_height()
+             << " stride=" << ir_frame.get_stride_in_bytes() << " bytes "
+             << ir_frame.get_stride_in_bytes() * ir_frame.get_height();
+
+        if( !encode_and_write_frame(avctx, hw_frame, out_file) )
         {
             cerr << "Failed to encode." << endl;
             break;
@@ -176,12 +186,10 @@ int main_loop(const input_args& input, rs2::pipeline& pipe, AVCodecContext* avct
     av_frame_free(&sw_frame);
     av_frame_free(&hw_frame);
 
-    err = encode_and_write_frame(avctx, NULL, out_file);
+    encode_and_write_frame(avctx, NULL, out_file);
 
-    if(err == AVERROR_EOF)
-        err = 0;
-
-    return err;
+    //all the requested frames processed?
+    return f==frames;
 }
 
 // true on success, false on error
@@ -204,9 +212,9 @@ bool encode_and_write_frame(AVCodecContext* avctx, AVFrame* frame, ofstream& out
     {
         // EAGAIN means that we just need to supply more data
         if((ret = avcodec_receive_packet(avctx, &enc_pkt)) < 0)
-        return (ret == AVERROR(EAGAIN)) ? true : false;
+            return (ret == AVERROR(EAGAIN)) ? true : false;
 
-        cout << "encoded bytes: " << enc_pkt.size << endl;
+        cout << " encoded in: " << enc_pkt.size << endl;
 
         enc_pkt.stream_index = 0;
         out_file.write((const char*)enc_pkt.data, enc_pkt.size);
@@ -325,6 +333,6 @@ int process_user_input(int argc, char* argv[], input_args* input)
     input->height = atoi(argv[2]);
     input->framerate = atoi(argv[3]);
     input->seconds = atoi(argv[4]);
-    input->device = argv[5]; //NULL as last argv argument, or device path 
+    input->device = argv[5]; //NULL as last argv argument, or device path
     return 0;
 }
