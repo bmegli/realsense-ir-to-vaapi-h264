@@ -2,7 +2,7 @@
 
  This program is example how to use:
  - VAAPI through FFmpeg to hardware encode
- - Realsense D400 infrared stream 
+ - Realsense D400 greyscale infrared stream 
  - to H.264 raw video
  - stored to disk as example
 
@@ -16,9 +16,9 @@ Tested on Ubuntu 18.04.
 ## Hardware
 
 - D400 series camera
-- VAAPI compatible hardware encoder
+- Intel VAAPI compatible hardware encoder - [Quick Sync Video](https://ark.intel.com/Search/FeatureFilter?productType=processors&QuickSyncVideo=true)
 
-Tested with D435 camera and Intel Quick Sync VAAPI device.
+Tested with D435 camera. There is possibility that it will also work with AMD/NVIDIA VAAPI.
 
 ## What it does
 
@@ -26,10 +26,12 @@ Tested with D435 camera and Intel Quick Sync VAAPI device.
 - init file for raw H.264 output
 - init Realsense D400 device
 - init VAAPI encoder with FFmpeg
-- read, encode & write
+- read greyscale IR data from the camera
+- encode to H.264
+- write to raw H.264 file
 - cleanup
 
-Currently NV12 Y is filled with infrared greyscale and color plane is filled with constant value.
+Currently VAAPI NV12 Y is filled with infrared greyscale and color plane is filled with constant value.
 
 ## Dependencies
 
