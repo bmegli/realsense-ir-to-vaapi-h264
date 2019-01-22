@@ -10,9 +10,8 @@ On my laptop it uses around 10% CPU at 1280x720.
 
 ## Platforms 
 
-Instructions focus on Linux. Tested on Ubuntu 18.04.
-
-The code is platform independent apart from device passed to hardware context (hardcoded string).
+Unix-like operating systems (e.g. Linux).
+Tested on Ubuntu 18.04.
 
 ## Hardware
 
