@@ -16,9 +16,9 @@ Tested on Ubuntu 18.04.
 ## Hardware
 
 - D400 series camera
-- Intel VAAPI compatible hardware encoder - [Quick Sync Video](https://ark.intel.com/Search/FeatureFilter?productType=processors&QuickSyncVideo=true)
+- Intel VAAPI compatible hardware encoder ([Quick Sync Video](https://ark.intel.com/Search/FeatureFilter?productType=processors&QuickSyncVideo=true))
 
-Tested with D435 camera. There is possibility that it will also work with AMD/NVIDIA VAAPI.
+Tested with D435 camera. There is possibility that it will also work with Amd/Nvidia hardware.
 
 ## What it does
 
