@@ -6,7 +6,14 @@
  - to H.264 raw video
  - stored to disk as example
 
-On my laptop it uses around 10% CPU at 1280x720.
+## CPU usage
+
+As reported by `htop` (percentage used, 100% would mean core fully utilzed).
+
+| Platform               | CPU       |  640x480 | 1280x720 |
+|------------------------|-----------|----------|----------|
+| Latte Panda Alpha      | M3-7Y30   |  15%     |   25%    |
+| High end laptop (2017) | i7-7820HK |  10%     |   12%    |
 
 ## Platforms 
 
@@ -51,6 +58,8 @@ Tested on Ubuntu 18.04.
 ``` bash
 # update package repositories
 sudo apt-get update 
+# get avcodec and avutil (and ffmpeg for testing)
+sudo apt-get install ffmpeg libavcodec-dev libavutil-dev
 # get compilers and make
 sudo apt-get install build-essential
 # get git
@@ -81,6 +90,7 @@ If you have multiple VAAPI devices you may have to specify Intel directly.
 
 Check with 
 ```bash
+sudo apt-get install vainfo
 # try the devices you have in /dev/dri/ path
 vainfo --display drm --device /dev/dri/renderD128
 ```
