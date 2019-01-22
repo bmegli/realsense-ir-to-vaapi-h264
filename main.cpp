@@ -164,6 +164,20 @@ bool main_loop(const input_args& input, rs2::pipeline& pipe, AVCodecContext* avc
             cerr << "hw_frame->hw_frames_ctx not enough memory" << endl;
             break;
         }
+		
+		AVPixelFormat *formats;
+		if(av_hwframe_transfer_get_formats(hw_frame->hw_frames_ctx, AV_HWFRAME_TRANSFER_DIRECTION_TO, &formats, 0) ==0)
+		{
+			AVPixelFormat *iterator=formats;
+			cout << "Formats:" << endl;
+			while(*iterator != AV_PIX_FMT_NONE)
+			{
+				cout << *iterator << " : " << av_get_pix_fmt_name (*iterator) << endl;
+				++iterator;
+			}
+			av_free(formats);
+		}
+		
         if((err = av_hwframe_transfer_data(hw_frame, sw_frame, 0)) < 0)
         {
             cerr << "Error while transferring frame data to surface." << endl;
