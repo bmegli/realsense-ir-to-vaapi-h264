@@ -116,38 +116,39 @@ int main(int argc, char* argv[])
 //true on success, false on failure
 bool main_loop(const input_args& input, rs2::pipeline& pipe, AVCodecContext* avctx, ofstream& out_file)
 {
-    const int size = input.width * input.height;
     const int frames = input.seconds * input.framerate;
     int err = 0, f;
-
     AVFrame *sw_frame = NULL, *hw_frame = NULL;
+
+	if(!(sw_frame = av_frame_alloc()))
+	{
+		cerr << "av_frame_alloc not enough memory" << endl;
+		return false;
+	}
+
+    sw_frame->width = input.width;
+    sw_frame->height = input.height;
+    sw_frame->format = AV_PIX_FMT_NV12;
+
+    uint8_t *color_data = NULL; //data of dummy color plane for NV12
 
     for(f = 0; f < frames; ++f)
     {
-        if(!(sw_frame = av_frame_alloc()))
-        {
-            cerr << "av_frame_alloc not enough memory" << endl;
-            break;
-        }
-        /* read data into software frame, and transfer them into hw frame */
-        sw_frame->width = input.width;
-        sw_frame->height = input.height;
-        sw_frame->format = AV_PIX_FMT_NV12;
-
-        if((err = av_frame_get_buffer(sw_frame, 32)) < 0)
-        {
-            cerr << "av_frame_get_buffer failed" << endl;
-            break;
-        }
         rs2::frameset frameset = pipe.wait_for_frames();
         rs2::video_frame ir_frame = frameset.get_infrared_frame(1);
 
-        const uint8_t* ir_data = (const uint8_t*)ir_frame.get_data();
+        if(!color_data)
+        {   //prepare dummy color plane for NV12 format, half the size of Y
+            //we can't alloc it in advance, this is the first time we know realsense stride
+            int size = ir_frame.get_stride_in_bytes()*ir_frame.get_height()/2;
+            color_data = new uint8_t[size];
+            memset(color_data, 128, size);
+        }
 
         // we assume here the same stride (0 padding!) in realsense and ffmpeg
-        memcpy(sw_frame->data[0], ir_data, size);
-        // fill the UV color plane with 128 value, check it
-        memset(sw_frame->data[1], 128, size / 2);
+        sw_frame->linesize[0] = sw_frame->linesize[1] =  ir_frame.get_stride_in_bytes();
+        sw_frame->data[0] = (uint8_t*) ir_frame.get_data();
+        sw_frame->data[1] = color_data;
 
         if(!(hw_frame = av_frame_alloc()))
         {
@@ -181,11 +182,11 @@ bool main_loop(const input_args& input, rs2::pipeline& pipe, AVCodecContext* avc
             break;
         }
         av_frame_free(&hw_frame);
-        av_frame_free(&sw_frame);
     }
 
     av_frame_free(&sw_frame);
     av_frame_free(&hw_frame);
+    delete [] color_data;
 
     encode_and_write_frame(avctx, NULL, out_file);
 
@@ -216,8 +217,8 @@ bool encode_and_write_frame(AVCodecContext* avctx, AVFrame* frame, ofstream& out
         out_file.write((const char*)enc_pkt.data, enc_pkt.size);
     }
 
-//EAGAIN means that we need to supply more data, otherwise we got and error
-       return ret == AVERROR(EAGAIN);
+    //EAGAIN means that we need to supply more data, otherwise we got and error
+    return ret == AVERROR(EAGAIN);
 }
 
 void init_realsense(rs2::pipeline& pipe, const input_args& input)
@@ -303,7 +304,7 @@ int init_hwframes_context(av_args* av, const input_args& input)
     }
     av->avctx->hw_frames_ctx = av_buffer_ref(hw_frames_ref);
     if(!av->avctx->hw_frames_ctx)
-    err = AVERROR(ENOMEM);
+        err = AVERROR(ENOMEM);
 
     av_buffer_unref(&hw_frames_ref);
     return err;
