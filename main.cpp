@@ -164,6 +164,7 @@ bool main_loop(const input_args& input, rs2::pipeline& pipe, AVCodecContext* avc
             cerr << "hw_frame->hw_frames_ctx not enough memory" << endl;
             break;
         }
+
         if((err = av_hwframe_transfer_data(hw_frame, sw_frame, 0)) < 0)
         {
             cerr << "Error while transferring frame data to surface." << endl;
@@ -208,18 +209,15 @@ bool encode_and_write_frame(AVCodecContext* avctx, AVFrame* frame, ofstream& out
         return false;
     }
 
-    while(1)
-    {
-        // EAGAIN means that we just need to supply more data
-        if((ret = avcodec_receive_packet(avctx, &enc_pkt)) < 0)
-            return (ret == AVERROR(EAGAIN)) ? true : false;
-
+    while( (ret = avcodec_receive_packet(avctx, &enc_pkt)) == 0)
+    {   //finally we have H.264 data in enc_pkt
         cout << " encoded in: " << enc_pkt.size << endl;
-
-        enc_pkt.stream_index = 0;
+		//do something with the data - here just dump to raw H.264 file
         out_file.write((const char*)enc_pkt.data, enc_pkt.size);
-        av_packet_unref(&enc_pkt);
     }
+
+//EAGAIN means that we need to supply more data, otherwise we got and error
+       return ret == AVERROR(EAGAIN);
 }
 
 void init_realsense(rs2::pipeline& pipe, const input_args& input)
