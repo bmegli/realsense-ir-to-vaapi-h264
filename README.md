@@ -88,7 +88,7 @@ Details:
 
 If you have multiple VAAPI devices you may have to specify Intel directly.
 
-Check with 
+Check with:
 ```bash
 sudo apt-get install vainfo
 # try the devices you have in /dev/dri/ path

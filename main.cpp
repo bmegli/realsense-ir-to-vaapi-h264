@@ -106,8 +106,8 @@ int main(int argc, char* argv[])
 
     if(status)
     {
-        cout << "Finished successfully" << endl;
-        cout << "Test with \"ffplay output.h264\"" << endl;
+        cout << "Finished successfully." << endl;
+        cout << "Test with: " << endl << endl << "ffplay output.h264" << endl;
     }
 
     return 0;
@@ -120,11 +120,11 @@ bool main_loop(const input_args& input, rs2::pipeline& pipe, AVCodecContext* avc
     int err = 0, f;
     AVFrame *sw_frame = NULL, *hw_frame = NULL;
 
-	if(!(sw_frame = av_frame_alloc()))
-	{
-		cerr << "av_frame_alloc not enough memory" << endl;
-		return false;
-	}
+    if(!(sw_frame = av_frame_alloc()))
+    {
+        cerr << "av_frame_alloc not enough memory" << endl;
+        return false;
+    }
 
     sw_frame->width = input.width;
     sw_frame->height = input.height;
@@ -144,8 +144,7 @@ bool main_loop(const input_args& input, rs2::pipeline& pipe, AVCodecContext* avc
             color_data = new uint8_t[size];
             memset(color_data, 128, size);
         }
-
-        // we assume here the same stride (0 padding!) in realsense and ffmpeg
+        //supply realsense frame data as ffmpeg frame data
         sw_frame->linesize[0] = sw_frame->linesize[1] =  ir_frame.get_stride_in_bytes();
         sw_frame->data[0] = (uint8_t*) ir_frame.get_data();
         sw_frame->data[1] = color_data;
@@ -168,7 +167,7 @@ bool main_loop(const input_args& input, rs2::pipeline& pipe, AVCodecContext* avc
 
         if((err = av_hwframe_transfer_data(hw_frame, sw_frame, 0)) < 0)
         {
-            cerr << "Error while transferring frame data to surface." << endl;
+            cerr << "error while transferring frame data to surface" << endl;
             break;
         }
 
@@ -178,7 +177,7 @@ bool main_loop(const input_args& input, rs2::pipeline& pipe, AVCodecContext* avc
 
         if( !encode_and_write_frame(avctx, hw_frame, out_file) )
         {
-            cerr << "Failed to encode." << endl;
+            cerr << "failed to encode/write frame" << endl;
             break;
         }
         av_frame_free(&hw_frame);
@@ -243,13 +242,13 @@ bool init_av(struct av_args* av, const input_args& input)
 
     if((err = av_hwdevice_ctx_create(&av->hw_device_ctx, AV_HWDEVICE_TYPE_VAAPI, input.device, NULL, 0) < 0))
     {
-        cerr << "Failed to create a VAAPI device." << endl;
+        cerr << "failed to create a VAAPI device" << endl;
         return false;
     }
 
     if(!(codec = avcodec_find_encoder_by_name("h264_vaapi")))
     {
-        cerr << "Could not find encoder." << endl;
+        cerr << "could not find encoder" << endl;
         return false;
     }
 
@@ -268,13 +267,13 @@ bool init_av(struct av_args* av, const input_args& input)
 
     if((err = init_hwframes_context(av, input)) < 0)
     {
-        cerr << "Failed to set hwframe context." << endl;
+        cerr << "failed to set hwframe context" << endl;
         return false;
     }
 
     if((err = avcodec_open2(av->avctx, codec, NULL)) < 0)
     {
-        cerr << "Cannot open video encoder codec." << endl;
+        cerr << "cannot open video encoder codec" << endl;
         return false;
     }
     return true;
@@ -287,7 +286,7 @@ int init_hwframes_context(av_args* av, const input_args& input)
 
     if(!(hw_frames_ref = av_hwframe_ctx_alloc(av->hw_device_ctx)))
     {
-        cerr << "Failed to create VAAPI frame context." << endl;
+        cerr << "failed to create VAAPI frame context" << endl;
         return -1;
     }
     frames_ctx = (AVHWFramesContext*)(hw_frames_ref->data);
@@ -298,7 +297,7 @@ int init_hwframes_context(av_args* av, const input_args& input)
     frames_ctx->initial_pool_size = 20;
     if((err = av_hwframe_ctx_init(hw_frames_ref)) < 0)
     {
-        cerr << "Failed to initialize VAAPI frame context." << endl;
+        cerr << "failed to initialize VAAPI frame context" << endl;
         av_buffer_unref(&hw_frames_ref);
         return err;
     }
