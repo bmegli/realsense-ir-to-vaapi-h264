@@ -48,6 +48,8 @@ extern "C"
 #include <libavutil/pixdesc.h>
 }
 
+#include "net_udp.h"
+
 #include <fstream>
 #include <iostream>
 using namespace std;
@@ -69,8 +71,8 @@ struct av_args
     AVCodecContext* avctx;
 };
 
-bool main_loop(const input_args& input, rs2::pipeline& pipe, AVCodecContext* avctx, ofstream& out_file);
-bool encode_and_write_frame(AVCodecContext* avctx, AVFrame* frame, ofstream& out_file);
+bool main_loop(const input_args& input, rs2::pipeline& pipe, AVCodecContext* avctx, ofstream& out_file, int socket_udp, const sockaddr_in &dest_udp);
+bool encode_and_write_frame(AVCodecContext* avctx, AVFrame* frame, unsigned long long frame_number, ofstream& out_file, int socket_udp, const sockaddr_in &dest_udp);
 void init_realsense(rs2::pipeline& pipe, const input_args& input);
 bool init_av(struct av_args* av, const input_args& input);
 int init_hwframes_context(av_args* av, const input_args& input);
@@ -80,12 +82,17 @@ int process_user_input(int argc, char* argv[], input_args* input);
 int main(int argc, char* argv[])
 {
     ofstream out_file("output.h264", ofstream::binary);
+    int socket_udp;
+    sockaddr_in destination_udp;
+    
     av_args av = { NULL, NULL };
     input_args input;
     rs2::pipeline pipe;
 
     if(process_user_input(argc, argv, &input) < 0)
         return 1;
+
+    InitNetworkUDP(&socket_udp, &destination_udp, "127.0.0.1", 9765, 0);
 
     if(!out_file)
         return 2;
@@ -98,11 +105,14 @@ int main(int argc, char* argv[])
         return 3;
     }
 
-    bool status=main_loop(input, pipe, av.avctx, out_file);
+
+    bool status=main_loop(input, pipe, av.avctx, out_file, socket_udp, destination_udp);
 
     close_av(&av);
 
+
     out_file.close();
+    CloseNetworkUDP(socket_udp);
 
     if(status)
     {
@@ -114,7 +124,7 @@ int main(int argc, char* argv[])
 }
 
 //true on success, false on failure
-bool main_loop(const input_args& input, rs2::pipeline& pipe, AVCodecContext* avctx, ofstream& out_file)
+bool main_loop(const input_args& input, rs2::pipeline& pipe, AVCodecContext* avctx, ofstream& out_file, int socket_udp, const sockaddr_in &dest_udp)
 {
     const int frames = input.seconds * input.framerate;
     int err = 0, f;
@@ -171,11 +181,12 @@ bool main_loop(const input_args& input, rs2::pipeline& pipe, AVCodecContext* avc
             break;
         }
 
-        cout << (f + 1) << ": width " << ir_frame.get_width() << " height " << ir_frame.get_height()
+        cout << (f + 1) << ": fnr " << ir_frame.get_frame_number() << " width "
+             << ir_frame.get_width() << " height " << ir_frame.get_height()
              << " stride=" << ir_frame.get_stride_in_bytes() << " bytes "
              << ir_frame.get_stride_in_bytes() * ir_frame.get_height();
 
-        if( !encode_and_write_frame(avctx, hw_frame, out_file) )
+        if( !encode_and_write_frame(avctx, hw_frame, ir_frame.get_frame_number(), out_file, socket_udp, dest_udp) )
         {
             cerr << "failed to encode/write frame" << endl;
             break;
@@ -187,14 +198,53 @@ bool main_loop(const input_args& input, rs2::pipeline& pipe, AVCodecContext* avc
     av_frame_free(&hw_frame);
     delete [] color_data;
 
-    encode_and_write_frame(avctx, NULL, out_file);
+    encode_and_write_frame(avctx, NULL, 0, out_file, socket_udp, dest_udp);
 
     //all the requested frames processed?
     return f==frames;
 }
 
+/* packet structure
+    u16 framenumber 
+    u16 packets
+    u16 packet 
+    u16 size  
+    u8[size] data
+     * 
+    header_bytes = 6
+*/
+
+const int FRAME_MAX_PAYLOAD=1400;
+const int FRAME_HEADER_SIZE=8;
+
+
+bool send_encoded_frame(const AVPacket &packet, uint16_t frame_number, int socket_udp, const sockaddr_in &dest_udp)
+{
+    //temporary buffer
+    static uint8_t data[FRAME_MAX_PAYLOAD+FRAME_HEADER_SIZE];
+    
+    const uint16_t packets=packet.size / FRAME_MAX_PAYLOAD;
+        
+    for(uint16_t p=0;p<=packets;++p)
+    {
+        //encode header
+        memcpy(data, &frame_number, sizeof(frame_number));
+        memcpy(data+2, &packets, sizeof(packets));
+        memcpy(data+4, &p, sizeof(p));
+        uint16_t size = (p != packets) ? FRAME_MAX_PAYLOAD : packet.size % FRAME_MAX_PAYLOAD;
+        memcpy(data+6, &size, sizeof(size));
+        //encode payload
+        memcpy(data+8, packet.data + p * FRAME_MAX_PAYLOAD, size);
+        
+        SendToUDP(socket_udp, dest_udp, (const char *)data, size + FRAME_HEADER_SIZE);
+        cout << "sent " << size + FRAME_HEADER_SIZE << " bytes" << endl;
+    }
+    
+    return true;
+}
+
 // true on success, false on error
-bool encode_and_write_frame(AVCodecContext* avctx, AVFrame* frame, ofstream& out_file)
+bool encode_and_write_frame(AVCodecContext* avctx, AVFrame* frame, unsigned long long frame_number, ofstream& out_file, int socket_udp, const sockaddr_in &dest_udp)
 {
     int ret = 0;
     AVPacket enc_pkt;
@@ -212,7 +262,8 @@ bool encode_and_write_frame(AVCodecContext* avctx, AVFrame* frame, ofstream& out
     while( (ret = avcodec_receive_packet(avctx, &enc_pkt)) == 0)
     {   //finally we have H.264 data in enc_pkt
         cout << " encoded in: " << enc_pkt.size << endl;
-		//do something with the data - here just dump to raw H.264 file
+        //do something with the data - here just dump to raw H.264 file
+
         out_file.write((const char*)enc_pkt.data, enc_pkt.size);
     }
 
