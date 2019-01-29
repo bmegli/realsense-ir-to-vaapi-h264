@@ -69,7 +69,9 @@ git clone https://github.com/bmegli/realsense-ir-to-vaapi-h264.git
 
 # finally build the program
 cd realsense-ir-to-vaapi-h264
-g++ main.cpp -std=c++11 -lrealsense2 -lavcodec -lavutil -o realsense-ir-to-vaapi-h264
+gcc -c hve.c
+g++ -c -std=c++11 main.cpp
+g++ hve.o main.o -lrealsense2 -lavcodec -lavutil -o realsense-ir-to-vaapi-h264
 ```
 
 ## Running 
