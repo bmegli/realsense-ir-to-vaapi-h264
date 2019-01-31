@@ -49,7 +49,7 @@ Program depends on:
 
 Install RealSense™ SDK 2.0 as described on [github](https://github.com/IntelRealSense/librealsense) 
 
-HVE is included as submodule, you only need meet its dependencies (FFmpeg).
+HVE is included as submodule, you only need to meet its dependencies (FFmpeg).
 
 HVE works with system FFmpeg on Ubuntu 18.04 and doesn't on 16.04 (outdated FFmpeg).
 
