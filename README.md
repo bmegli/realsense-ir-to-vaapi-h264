@@ -1,6 +1,6 @@
 # realsense-ir-to-vaapi-h264
 
- This program is example how to use:
+This program is example how to use:
  - VAAPI through FFmpeg to hardware encode
  - Realsense D400 greyscale infrared stream 
  - to H.264 raw video
@@ -42,14 +42,16 @@ Currently VAAPI NV12 Y is filled with infrared greyscale and color plane is fill
 
 ## Dependencies
 
-Library depends on:
+Program depends on:
 - [librealsense2](https://github.com/IntelRealSense/librealsense) 
-- FFmpeg avcodec and avutil (tested with 3.4 version)
+- [HVE Hardware Video Encoder](https://github.com/bmegli/hardware-video-encoder)
+   - FFmpeg avcodec and avutil (tested with 3.4 version)
 
 Install RealSense™ SDK 2.0 as described on [github](https://github.com/IntelRealSense/librealsense) 
 
-Works with system FFmpeg on Ubuntu 18.04.
+HVE is included as submodule, you only need meet its dependencies (FFmpeg).
 
+HVE works with system FFmpeg on Ubuntu 18.04 and doesn't on 16.04 (outdated FFmpeg).
 
 ## Building Instructions
 
@@ -62,16 +64,19 @@ sudo apt-get update
 sudo apt-get install ffmpeg libavcodec-dev libavutil-dev
 # get compilers and make
 sudo apt-get install build-essential
+# get cmake - we need to specify libcurl4 for Ubuntu 18.04 dependencies problem
+sudo apt-get install libcurl4 cmake
 # get git
 sudo apt-get install git
-# clone the repository
-git clone https://github.com/bmegli/realsense-ir-to-vaapi-h264.git
+# clone the repository (don't forget `--recursive` for submodule!)
+git clone --recursive https://github.com/bmegli/realsense-ir-to-vaapi-h264.git
 
 # finally build the program
 cd realsense-ir-to-vaapi-h264
-gcc -c hve.c
-g++ -c -std=c++11 main.cpp
-g++ hve.o main.o -lrealsense2 -lavcodec -lavutil -o realsense-ir-to-vaapi-h264
+mkdir build
+cd build
+cmake ..
+make
 ```
 
 ## Running 
@@ -114,17 +119,20 @@ ffplay output.h264
 
 ## License
 
-Library is licensed under Mozilla Public License, v. 2.0
+realsense-ir-to-vaapi-h264 and HVE are licensed under Mozilla Public License, v. 2.0
 
 This is similiar to LGPL but more permissive:
 - you can use it as LGPL in prioprietrary software
 - unlike LGPL you may compile it statically with your code
 
-Like in LGPL, if you modify this library, you have to make your changes available.
-Making a github fork of the library with your changes satisfies those requirements perfectly.
+Like in LGPL, if you modify the code, you have to make your changes available.
+Making a github fork with your changes satisfies those requirements perfectly.
+
+Since you are linking to FFmpeg libraries. Consider also avcodec and avutil licensing.
 
 ## Additional information
 
 High H.264 profile supports Monochrome Video Format (4:0:0) so there may be room for improvement (I am not sure VAAPI supports it).
+
 
 
