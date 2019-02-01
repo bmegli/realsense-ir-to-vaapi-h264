@@ -136,6 +136,8 @@ bool main_loop(const input_args& input, rs2::pipeline& realsense, hve *he, ofstr
 	}
 	cout << endl;
 		
+	delete [] color_data;
+
 	//all the requested frames processed?
 	return f==frames;
 }
