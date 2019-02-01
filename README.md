@@ -1,7 +1,7 @@
 # realsense-ir-to-vaapi-h264
 
 This program is example how to use:
- - VAAPI through FFmpeg to hardware encode
+ - VAAPI through [HVE](https://github.com/bmegli/hardware-video-encoder)(FFmpeg) to hardware encode
  - Realsense D400 greyscale infrared stream 
  - to H.264 raw video
  - stored to disk as example
@@ -32,7 +32,7 @@ Tested with D435 camera. There is possibility that it will also work with Amd/Nv
 - process user input (width, height, framerate, time to capture)
 - init file for raw H.264 output
 - init Realsense D400 device
-- init VAAPI encoder with FFmpeg
+- init VAAPI encoder with HVE
 - read greyscale IR data from the camera
 - encode to H.264
 - write to raw H.264 file
@@ -45,13 +45,13 @@ Currently VAAPI NV12 Y is filled with infrared greyscale and color plane is fill
 Program depends on:
 - [librealsense2](https://github.com/IntelRealSense/librealsense) 
 - [HVE Hardware Video Encoder](https://github.com/bmegli/hardware-video-encoder)
-   - FFmpeg avcodec and avutil (tested with 3.4 version)
+   - FFmpeg avcodec and avutil (requires at least 3.4 version)
 
 Install RealSense™ SDK 2.0 as described on [github](https://github.com/IntelRealSense/librealsense) 
 
 HVE is included as submodule, you only need to meet its dependencies (FFmpeg).
 
-HVE works with system FFmpeg on Ubuntu 18.04 and doesn't on 16.04 (outdated FFmpeg).
+HVE works with system FFmpeg on Ubuntu 18.04 and doesn't on 16.04 (outdated FFmpeg, you would have to compile your own).
 
 ## Building Instructions
 
@@ -124,6 +124,7 @@ realsense-ir-to-vaapi-h264 and HVE are licensed under Mozilla Public License, v.
 This is similiar to LGPL but more permissive:
 - you can use it as LGPL in prioprietrary software
 - unlike LGPL you may compile it statically with your code
+- the license works on file-by-file basis
 
 Like in LGPL, if you modify the code, you have to make your changes available.
 Making a github fork with your changes satisfies those requirements perfectly.
