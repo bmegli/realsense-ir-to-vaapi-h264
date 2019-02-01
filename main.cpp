@@ -15,26 +15,8 @@
  * - to H.264 raw video
  * - stored to disk as example
  *
- * See README.md for the details!
+ * See README.md for the details
  *
- * Dependencies:
- * - librealsense2
- * - ffmpeg (libavcodec, libavutil)
- *
- * Building:
- * g++ main.cpp -std=c++11 -lrealsense2 -lavcodec -lavutil -o realsense-ir-to-vaapi-h264
- *
- * Running:
- * realsense-ir-to-vaapi-h264 width height framerate nr_of_seconds optional-device
- *
- * e.g.
- * realsense-ir-to-vaapi-h264 640 360 30 5
- * realsense-ir-to-vaapi-h264 640 360 30 5 /dev/dri/renderD128
- *
- * width and height have to be supported by D400 camera and H.264, framerate by D400 camera
- *
- * Testing:
- * ffplay output.h264
  */
 
 // Hardware Video Encoder
