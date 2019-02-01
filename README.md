@@ -1,7 +1,7 @@
 # realsense-ir-to-vaapi-h264
 
 This program is example how to use:
- - VAAPI through [HVE](https://github.com/bmegli/hardware-video-encoder)(FFmpeg) to hardware encode
+ - VAAPI through [HVE](https://github.com/bmegli/hardware-video-encoder) (FFmpeg) to hardware encode
  - Realsense D400 greyscale infrared stream 
  - to H.264 raw video
  - stored to disk as example
