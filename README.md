@@ -5,6 +5,8 @@ This program is example how to use:
  - Realsense D400 greyscale infrared stream 
  - to H.264 raw video
  - stored to disk as example
+ 
+ See [hardware-video-streaming](https://github.com/bmegli/hardware-video-streaming) for other related projects.
 
 ## CPU usage
 
