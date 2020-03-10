@@ -54,7 +54,7 @@ Install RealSense™ SDK 2.0 as described on [github](https://github.com/IntelRe
 HVE is included as submodule, you only need to meet its dependencies (FFmpeg).
 
 HVE works with system FFmpeg on Ubuntu 18.04 and doesn't on 16.04.
-Ubuntu 16.04 has outdated FFmpeg (compile you own or use non-official packages).
+Ubuntu 16.04 has outdated FFmpeg and VAAPI ecosystem.
 
 ## Building Instructions
 
