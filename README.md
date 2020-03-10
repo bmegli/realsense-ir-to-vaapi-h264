@@ -133,10 +133,3 @@ Like in LGPL, if you modify the code, you have to make your changes available.
 Making a github fork with your changes satisfies those requirements perfectly.
 
 Since you are linking to FFmpeg libraries. Consider also avcodec and avutil licensing.
-
-## Additional information
-
-High H.264 profile supports Monochrome Video Format (4:0:0) so there may be room for improvement (I am not sure VAAPI supports it).
-
-
-
