@@ -115,3 +115,9 @@ Like in LGPL, if you modify the code, you have to make your changes available.
 Making a github fork with your changes satisfies those requirements perfectly.
 
 Since you are linking to FFmpeg libraries. Consider also avcodec and avutil licensing.
+
+## Beyond Infrared Encoding
+
+See also:
+- depth encoding [example](https://github.com/bmegli/realsense-depth-to-vaapi-hevc10)
+- [RNHVE](https://github.com/bmegli/realsense-network-hardware-video-encoder) infrared, color, depth and textured depth network streaming
