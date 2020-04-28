@@ -6,6 +6,8 @@ This program is example how to use:
  - to H.264 raw video
  - stored to disk as example
  
+ See [how it works](https://github.com/bmegli/realsense-ir-to-vaapi-h264/wiki/How-it-works) on wiki to understand the code.
+ 
  See [hardware-video-streaming](https://github.com/bmegli/hardware-video-streaming) for other related projects.
 
 ## CPU usage
@@ -28,19 +30,6 @@ Tested on Ubuntu 18.04.
 - Intel VAAPI compatible hardware encoder ([Quick Sync Video](https://ark.intel.com/Search/FeatureFilter?productType=processors&QuickSyncVideo=true))
 
 Tested with D435 camera. There is possibility that it will also work with Amd/Nvidia hardware.
-
-## What it does
-
-- process user input (width, height, framerate, time to capture)
-- init file for raw H.264 output
-- init Realsense D400 device
-- init VAAPI encoder with HVE
-- read greyscale IR data from the camera
-- encode to H.264
-- write to raw H.264 file
-- cleanup
-
-Currently VAAPI NV12 Y is filled with infrared greyscale and color plane is filled with constant value.
 
 ## Dependencies
 
