@@ -6,18 +6,11 @@ This program is example how to use:
  - to H.264 raw video
  - stored to disk as example
  
+ See [benchmarks](https://github.com/bmegli/realsense-ir-to-vaapi-h264/wiki/Benchmarks) on wiki for CPU usage.
+ 
  See [how it works](https://github.com/bmegli/realsense-ir-to-vaapi-h264/wiki/How-it-works) on wiki to understand the code.
  
  See [hardware-video-streaming](https://github.com/bmegli/hardware-video-streaming) for other related projects.
-
-## CPU usage
-
-As reported by `htop` (percentage used, 100% would mean core fully utilzed).
-
-| Platform               | CPU       |  640x480 | 1280x720 |
-|------------------------|-----------|----------|----------|
-| Latte Panda Alpha      | M3-7Y30   |  15%     |   25%    |
-| High end laptop (2017) | i7-7820HK |  10%     |   12%    |
 
 ## Platforms 
 
